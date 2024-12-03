@@ -1,17 +1,24 @@
 from config import CycleQDConfig
 from cycleqd import CycleQD
 from tasks import BaseTask
-from models import BaseModel
+from models import ExpertModel
 import torch
+from lm_eval import simple_evaluate
+from lm_eval.models.huggingface import HFLM
 
 
-class CodeTask(BaseTask):
+class ArcTask(BaseTask):
     def __init__(self):
         super().__init__("Coding Task")
 
-    def evaluate(self, model: BaseModel):
-        # Evaluation logic for Coding task
-        return torch.rand(1)  # Random performance metric
+    def evaluate(self, model: ExpertModel):
+        lm = HFLM(
+            pretrained=model.model.cuda(), backend="causal", tokenizer=model.tokenizer
+        )
+        res = simple_evaluate(lm, tasks=["arc_challenge"])["results"]
+        print(res)
+        model.model.cpu()
+        return torch.tensor(res["arc_challenge"]["acc,none"])
 
 
 expert_models = [
@@ -20,7 +27,7 @@ expert_models = [
 base_model = "Qwen/Qwen2.5-0.5B-Instruct"
 
 # Define tasks
-tasks = [CodeTask()]
+tasks = [ArcTask()]
 
 # Create configuration
 config = CycleQDConfig(

@@ -16,7 +16,7 @@ class CycleQD:
         self.base_model = BaseModel(config.base_model)
         self.tasks = config.tasks
 
-    def linear_merge(self, experts: list[ExpertModel], coefficients):
+    def linear_merge(self, experts: list[ExpertModel], coefficients: list[float]):
         base_state_dict = self.base_model.model.state_dict()
         merged_state_dict = {k: v.clone() for k, v in base_state_dict.items()}
         for expert, coeff in zip(experts, coefficients):
@@ -30,7 +30,7 @@ class CycleQD:
         merged_model.load_state_dict(merged_state_dict)
         return merged_model
 
-    def gaussian_noise(self, model, std):
+    def gaussian_noise(self, model: ExpertModel, std: float):
         for param in model.model.parameters():
             noise = torch.randn_like(param) * std
             param.data += noise
@@ -40,7 +40,7 @@ class CycleQD:
         for gen in range(self.config.generations):
             print(f"Generation: {gen}")
             current_task = self.tasks[gen % len(self.tasks)]
-            performances = [current_task.evaluate(model.model) for model in population]
+            performances = [current_task.evaluate(model) for model in population]
             elites = sorted(zip(performances, population), reverse=True)
             elites = [pop for _, pop in elites[: self.config.population_size]]
             new_generation = []
@@ -63,4 +63,4 @@ class CycleQD:
             population = new_generation
         final_coefficients = F.softmax(torch.rand(len(self.experts)), dim=0)
         final_model = self.linear_merge(self.experts, final_coefficients.tolist())
-        return final_model
+        return ExpertModel(self.config.base_model, "Child", final_model.state_dict())
