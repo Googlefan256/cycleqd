@@ -1,13 +1,24 @@
-from dataclasses import dataclass
-from typing import List
+from tasks import BaseTask
+from models import BaseModel, ExpertModel
 
 
-@dataclass
-class Config:
-    base_model_path: str
-    expert_model_paths: List[str]
-    tasks: List[str]
-    num_generations: int = 10
-    population_size: int = 5
-    mutation_strength: float = 0.1
-    aggregation_frequency: int = 5
+class CycleQDConfig:
+    def __init__(
+        self,
+        expert_models: list[ExpertModel],
+        base_model: BaseModel,
+        tasks: list[BaseTask],
+        population_size=100,
+        generations=10,
+        mutation_rate=0.1,
+        crossover_rate=0.5,
+        noise_std=0.01,
+    ):
+        self.expert_models = expert_models
+        self.base_model = base_model
+        self.tasks = tasks
+        self.population_size = population_size
+        self.generations = generations
+        self.mutation_rate = mutation_rate
+        self.crossover_rate = crossover_rate
+        self.noise_std = noise_std

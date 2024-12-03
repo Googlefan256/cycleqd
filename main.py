@@ -1,26 +1,37 @@
-import logging
-from training_loop import training_loop
-from config import Config
+from config import CycleQDConfig
+from cycleqd import CycleQD
+from tasks import OsTask, DBTask, CodeTask
 
-logging.basicConfig(level=logging.INFO)
+expert_models = [
+    "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+    "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+    "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+]
+base_model = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 
+# Define tasks
+tasks = [OsTask(), DBTask(), CodeTask()]
 
-def main():
-    config = Config(
-        base_model_path="google/gemma-2-2b-it",
-        expert_model_paths=[
-            "google/gemma-2-2b-it",
-            "google/gemma-2-2b-it",
-            "google/gemma-2-2b-it",
-        ],
-        tasks=["coding", "os", "db"],
-        num_generations=10,
-        population_size=3,
-        mutation_strength=0.1,
-        aggregation_frequency=5,
-    )
-    training_loop(config)
+# Create configuration
+config = CycleQDConfig(
+    expert_models=expert_models,
+    base_model=base_model,
+    tasks=tasks,
+    population_size=3,
+    generations=10,
+)
 
+# Initialize CycleQD
+cycle_qd = CycleQD(config)
 
-if __name__ == "__main__":
-    main()
+for task in tasks:
+    performance = task.evaluate(cycle_qd.base_model)
+    print(f"Performance on {task.name}: {performance.item()}")
+
+# Perform cyclic optimization
+final_model = cycle_qd.cyclic_optimization()
+
+# Evaluate final model on all tasks
+for task in tasks:
+    performance = task.evaluate(final_model)
+    print(f"Performance on {task.name}: {performance.item()}")
