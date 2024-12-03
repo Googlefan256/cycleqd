@@ -66,8 +66,9 @@ config = CycleQDConfig(
     expert_models=expert_models,
     base_model=base_model,
     tasks=tasks,
-    population_size=5,
-    generations=10,
+    population_size=10,
+    generations=20,
+    cells=2,
 )
 
 # Initialize CycleQD
