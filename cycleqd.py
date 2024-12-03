@@ -40,13 +40,9 @@ class CycleQD:
             for key in merged_task_vector:
                 merged_task_vector[key] += coeff * vector[key].to("cuda")
         base_state_dict = self.base_model.model.state_dict()
-        merged_state_dict = {
-            k: v.clone().to("cuda") for k, v in base_state_dict.items()
-        }
+        merged_state_dict = {k: v.clone() for k, v in base_state_dict.items()}
         for key in merged_task_vector:
-            merged_state_dict[key]
-            merged_state_dict[key] += merged_task_vector[key]
-            merged_state_dict[key].to("cpu")
+            merged_state_dict[key] += merged_task_vector[key].to("cpu")
         merged_model = copy.deepcopy(self.base_model.model)
         merged_model.load_state_dict(merged_state_dict)
         return merged_model
@@ -56,11 +52,11 @@ class CycleQD:
         for key in tqdm(task_vector, desc="Mutation"):
             tensor = task_vector[key].to("cuda")
             if len(tensor.shape) > 1:
-                U, S, Vh = torch.svd(tensor, some=True)
-                S_rand = torch.randn_like(S, device="cuda")
+                U, S, Vh = torch.svd(tensor.clone().to(torch.float32), some=True)
+                S_rand = torch.randn_like(S, device="cuda", dtype=torch.bfloat16)
                 diag_S_rand = torch.diag_embed(S_rand)
                 V = Vh.transpose(-2, -1)
-                perturbation = U @ diag_S_rand @ V
+                perturbation = U.to(torch.bfloat16) @ diag_S_rand @ V.to(torch.bfloat16)
                 perturbation = perturbation.to(tensor.dtype).to(tensor.device)
                 mutated_task_vector[key] = (
                     tensor + mutation_strength * perturbation

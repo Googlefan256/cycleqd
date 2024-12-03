@@ -1,4 +1,4 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from typing import Optional, Dict
 import torch
 
@@ -10,10 +10,14 @@ class BaseModel:
         state_dict: Optional[Dict[str, torch.Tensor]] = None,
     ):
         self.tokenizer: AutoTokenizer = AutoTokenizer.from_pretrained(model_path)
-        self.model: AutoModelForCausalLM = AutoModelForCausalLM.from_pretrained(
-            model_path
-        )
-        if state_dict is not None:
+        if state_dict is None:
+            self.model: AutoModelForCausalLM = AutoModelForCausalLM.from_pretrained(
+                model_path, torch_dtype=torch.bfloat16
+            )
+        else:
+            self.model: AutoModelForCausalLM = AutoModelForCausalLM.from_config(
+                AutoConfig.from_pretrained(model_path), torch_dtype=torch.bfloat16
+            )
             self.model.load_state_dict(state_dict)
 
 

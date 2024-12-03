@@ -53,10 +53,11 @@ class Task2(BaseTask):
 
 
 expert_models = [
-    "Qwen/Qwen2.5-Coder-0.5B-Instruct",
-    "Qwen/Qwen2.5-0.5B-Instruct",
+    "AXCXEPT/EZO-Common-T2-2B-gemma-2-it",
+    "google/gemma-2-2b-it",
+    "cognitivecomputations/dolphin-2.9.4-gemma2-2b",
 ]
-base_model = "Qwen/Qwen2.5-0.5B"
+base_model = "google/gemma-2-2b"
 
 # Define tasks
 tasks = [Task1(), Task2()]
@@ -66,22 +67,17 @@ config = CycleQDConfig(
     expert_models=expert_models,
     base_model=base_model,
     tasks=tasks,
-    population_size=10,
-    generations=20,
+    population_size=5,
+    generations=30,
     cells=2,
 )
 
-# Initialize CycleQD
 cycle_qd = CycleQD(config)
 
-for task in tasks:
-    performance = task.evaluate(cycle_qd.base_model)
-    print(f"Base performance on {task.name}: {performance.item()}")
-
-# Perform cyclic optimization
 final_model = cycle_qd.cyclic_optimization()
 
-# Evaluate final model on all tasks
 for task in tasks:
     performance = task.evaluate(final_model)
     print(f"Result performance on {task.name}: {performance.item()}")
+
+final_model.model.save_pretrained("./results")
