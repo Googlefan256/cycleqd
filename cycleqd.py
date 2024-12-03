@@ -51,7 +51,9 @@ class CycleQD:
                     merged_model = self.linear_merge(
                         [parent1, parent2], [coeff1, coeff2]
                     )
-                    child = ExpertModel(self.config.base_model, "Child", merged_model)
+                    child = ExpertModel(
+                        self.config.base_model, "Child", merged_model.state_dict()
+                    )
                 else:
                     child = parent1
                 if torch.rand(1) < self.config.mutation_rate:
