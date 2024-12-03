@@ -4,7 +4,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 class BaseModel:
     def __init__(self, model_path, state_dict=None):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
-        self.model = AutoModelForCausalLM.from_pretrained(model_path)
+        self.model: AutoModelForCausalLM = AutoModelForCausalLM.from_pretrained(
+            model_path
+        )
+        self.model.load_state_dict(state_dict)
 
 
 class ExpertModel(BaseModel):
