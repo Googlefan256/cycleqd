@@ -32,7 +32,9 @@ class CycleQD:
                 task_vector[key] = expert_state_dict[key] - base_state_dict[key]
         return task_vector
 
-    def linear_merge(self, task_vectors: list[dict], coefficients: list[float]):
+    def linear_merge(
+        self, task_vectors: list[dict], coefficients: list[float], base: bool = True
+    ):
         merged_task_vector = {
             k: torch.zeros_like(v, device="cuda") for k, v in task_vectors[0].items()
         }
@@ -40,7 +42,10 @@ class CycleQD:
             for key in merged_task_vector:
                 merged_task_vector[key] += coeff * vector[key].to("cuda")
         base_state_dict = self.base_model.model.state_dict()
-        merged_state_dict = {k: v.clone() for k, v in base_state_dict.items()}
+        merged_state_dict = {
+            k: v.clone() if base else torch.zeros_like(v, dtype=v.dtype)
+            for k, v in base_state_dict.items()
+        }
         for key in merged_task_vector:
             merged_state_dict[key] += merged_task_vector[key].to("cpu")
         merged_model = copy.deepcopy(self.base_model.model)
@@ -65,24 +70,8 @@ class CycleQD:
                 mutated_task_vector[key] = tensor.to("cpu")
         return mutated_task_vector
 
-    def calculate_gamma(self, performances: list[list[float]]):
-        gammas = []
-        for j in range(len(performances)):
-            gamma_j = 1.0
-            for i in range(len(performances[j])):
-                f_ji = performances[j][i]
-                f_min = min([performances[k][i] for k in range(len(performances))])
-                f_max = max([performances[k][i] for k in range(len(performances))])
-                alpha = self.config.alpha_low + (f_ji - f_min) / (f_max - f_min) * (
-                    self.config.alpha_high - self.config.alpha_low
-                )
-                gamma_j *= alpha
-            gammas.append(gamma_j)
-        return gammas
-
     def cyclic_optimization(self):
-        task_vectors = [self.get_task_vector(expert) for expert in self.experts]
-        population = task_vectors
+        population = [self.get_task_vector(expert) for expert in self.experts]
         for gen in range(self.config.generations):
             task_idx = gen % len(self.tasks)
             current_task = self.tasks[task_idx]
@@ -103,21 +92,25 @@ class CycleQD:
                 ]
                 performances.append(performance)
                 bcs.append(bc_performance)
-            gammas = self.calculate_gamma(performances)
-            sampling_probs = F.softmax(torch.tensor(gammas), dim=0)
+            sampling_probs = F.softmax(torch.tensor(performances), dim=0)
             new_population = []
             for _ in range(self.config.population_size):
                 parent1, parent2 = random.choices(
                     population, weights=sampling_probs, k=2
                 )
                 if random.random() < self.config.crossover_rate:
+                    print("Using crossover")
                     child_task_vector = self.linear_merge(
-                        [parent1, parent2], [0.5, 0.5]
+                        [parent1, parent2], [0.5, 0.5], False
                     ).state_dict()
                 else:
+                    print("Using parent1")
                     child_task_vector = parent1
                 if random.random() < self.config.mutation_rate:
+                    print("Doing mutation")
                     child_task_vector = self.svd_based_mutation(child_task_vector)
+                else:
+                    print("Not doing mutation")
                 new_population.append(child_task_vector)
             alter_tasks = [task.name for task in self.tasks if task != current_task]
             for model, performance, bc in zip(new_population, performances, bcs):
@@ -141,13 +134,7 @@ class CycleQD:
         final_coefficients = F.softmax(
             torch.tensor([model["perf"] for model in final_models]), dim=0
         )
-        final_model_task_vector = {}
-        for key in final_models[0]["model"]:
-            final_model_task_vector[key] = sum(
-                coeff * model["model"][key]
-                for coeff, model in zip(final_coefficients, final_models)
-            )
-        final_model = self.linear_merge([final_model_task_vector], [1.0])
+        final_model = self.linear_merge(final_models, final_coefficients)
         return ExpertModel(
             self.config.base_model, "FinalModel", final_model.state_dict()
         )
