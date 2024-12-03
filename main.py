@@ -53,11 +53,11 @@ class Task2(BaseTask):
 
 
 expert_models = [
-    "AXCXEPT/EZO-Common-T2-2B-gemma-2-it",
-    "google/gemma-2-2b-it",
-    "cognitivecomputations/dolphin-2.9.4-gemma2-2b",
+    "Qwen/Qwen2.5-Coder-0.5B",
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-Coder-0.5B-Instruct",
 ]
-base_model = "google/gemma-2-2b"
+base_model = "Qwen/Qwen2.5-0.5B"
 
 # Define tasks
 tasks = [Task1(), Task2()]

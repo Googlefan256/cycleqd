@@ -137,9 +137,17 @@ class CycleQD:
         for task in self.tasks:
             for model_record in self.archives[task.name]:
                 if model_record is not None:
-                    final_models.append(model_record["model"])
-        final_coefficients = F.softmax(torch.rand(len(final_models)), dim=0)
-        final_model = self.linear_merge(final_models, final_coefficients.tolist())
+                    final_models.append(model_record)
+        final_coefficients = F.softmax(
+            torch.tensor([model["perf"] for model in final_models]), dim=0
+        )
+        final_model_task_vector = {}
+        for key in final_models[0]["model"]:
+            final_model_task_vector[key] = sum(
+                coeff * model["model"][key]
+                for coeff, model in zip(final_coefficients, final_models)
+            )
+        final_model = self.linear_merge([final_model_task_vector], [1.0])
         return ExpertModel(
             self.config.base_model, "FinalModel", final_model.state_dict()
         )
