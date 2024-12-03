@@ -6,6 +6,7 @@ import copy
 from torch.nn import functional as F
 from tqdm import tqdm
 import numpy as np
+import random
 
 
 class CycleQD:
@@ -113,13 +114,13 @@ class CycleQD:
                 parent1, parent2 = random.choices(
                     population, weights=sampling_probs, k=2
                 )
-                if torch.rand(1) < self.config.crossover_rate:
+                if random.random() < self.config.crossover_rate:
                     child_task_vector = self.linear_merge(
                         [parent1, parent2], [0.5, 0.5]
                     ).state_dict()
                 else:
                     child_task_vector = parent1
-                if torch.rand(1) < self.config.mutation_rate:
+                if random.random() < self.config.mutation_rate:
                     child_task_vector = self.svd_based_mutation(child_task_vector)
                 new_population.append(child_task_vector)
             alter_tasks = [task.name for task in self.tasks if task != current_task]

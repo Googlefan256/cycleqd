@@ -5,6 +5,9 @@ from models import ExpertModel
 import torch
 from lm_eval import simple_evaluate
 from lm_eval.models.huggingface import HFLM
+import logging
+
+logging.disable(100)
 
 
 class Task1(BaseTask):
@@ -15,7 +18,14 @@ class Task1(BaseTask):
         lm = HFLM(
             pretrained=model.model.cuda(), backend="causal", tokenizer=model.tokenizer
         )
-        res = simple_evaluate(lm, tasks=["mmlu_electrical_engineering"])["results"]["mmlu_electrical_engineering"]["acc,none"]
+        res = simple_evaluate(
+            lm,
+            tasks=["mmlu_electrical_engineering"],
+            random_seed=None,
+            numpy_random_seed=None,
+            torch_random_seed=None,
+            fewshot_random_seed=None,
+        )["results"]["mmlu_electrical_engineering"]["acc,none"]
         print(f"Task1: {res}")
         model.model.cpu()
         return torch.tensor([res])
@@ -29,7 +39,14 @@ class Task2(BaseTask):
         lm = HFLM(
             pretrained=model.model.cuda(), backend="causal", tokenizer=model.tokenizer
         )
-        res = simple_evaluate(lm, tasks=["mmlu_college_computer_science"])["results"]["mmlu_college_computer_science"]["acc,none"]
+        res = simple_evaluate(
+            lm,
+            tasks=["mmlu_college_computer_science"],
+            random_seed=None,
+            numpy_random_seed=None,
+            torch_random_seed=None,
+            fewshot_random_seed=None,
+        )["results"]["mmlu_college_computer_science"]["acc,none"]
         print(f"Task2: {res}")
         model.model.cpu()
         return torch.tensor([res])
@@ -66,4 +83,4 @@ final_model = cycle_qd.cyclic_optimization()
 # Evaluate final model on all tasks
 for task in tasks:
     performance = task.evaluate(final_model)
-    print(f"Base performance on {task.name}: {performance.item()}")
+    print(f"Result performance on {task.name}: {performance.item()}")
