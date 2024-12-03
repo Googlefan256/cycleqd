@@ -7,7 +7,8 @@ class BaseModel:
         self.model: AutoModelForCausalLM = AutoModelForCausalLM.from_pretrained(
             model_path
         )
-        self.model.load_state_dict(state_dict)
+        if state_dict is not None:
+            self.model.load_state_dict(state_dict)
 
 
 class ExpertModel(BaseModel):
