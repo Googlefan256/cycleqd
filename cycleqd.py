@@ -140,7 +140,7 @@ class CycleQD:
         )
         print(f"Merging with ratio: {final_coefficients.tolist()}")
         final_model = self.linear_merge(
-            [model for model["model"] in final_models], final_coefficients
+            [model["model"] for model in final_models], final_coefficients
         )
         return ExpertModel(
             self.config.base_model, "FinalModel", final_model.state_dict()
