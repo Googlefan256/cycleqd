@@ -153,9 +153,9 @@ class CycleQD:
                     if record is not None:
                         final_models.append(record)
         final_coefficients = F.softmax(
-            torch.tensor([model["perf"].item() for model in final_models]), dim=0
+            torch.tensor([1.0 for _model in final_models]), dim=0
         )
-        print(f"Merging / Recipe: {final_coefficients.tolist()}")
+        print(f"Merging / Recipe Size: {len(final_models)}")
         final_model = self.linear_merge(
             [model["model"] for model in final_models], final_coefficients
         )
