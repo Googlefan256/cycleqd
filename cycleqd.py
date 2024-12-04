@@ -86,7 +86,7 @@ class CycleQD:
             performances = []
             bcs = []
             for i, model in enumerate(population):
-                print(f"Eval model / Model: {i}")
+                print(f"Eval Model / Model: {i}")
                 merged_model = ExpertModel(
                     self.config.base_model,
                     "Placeholder",

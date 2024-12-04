@@ -64,5 +64,5 @@ config = CycleQDConfig(
     tasks=tasks,
     population_size=8,
     generations=20,
-    cells=3,
+    cells=10,
 )
