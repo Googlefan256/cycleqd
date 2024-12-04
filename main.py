@@ -9,7 +9,7 @@ from lm_eval.models.huggingface import HFLM
 
 class Task1(BaseTask):
     def __init__(self):
-        super().__init__("Task 1")
+        super().__init__("Task 1", "Qwen/Qwen2.5-0.5B-Instruct")
 
     def evaluate(self, model: ExpertModel):
         lm = HFLM(
@@ -31,7 +31,7 @@ class Task1(BaseTask):
 
 class Task2(BaseTask):
     def __init__(self):
-        super().__init__("Task  2")
+        super().__init__("Task  2", "artificialguybr/Qwen2.5-0.5B-OpenHermes2.5")
 
     def evaluate(self, model: ExpertModel):
         lm = HFLM(
@@ -51,11 +51,6 @@ class Task2(BaseTask):
         return torch.tensor([res])
 
 
-expert_models = [
-    "caelancooper/Qwen2.5-0.5B-business",
-    "Qwen/Qwen2.5-0.5B-Instruct",
-    "artificialguybr/Qwen2.5-0.5B-OpenHermes2.5",
-]
 base_model = "Qwen/Qwen2.5-0.5B"
 
 # Define tasks
@@ -63,11 +58,10 @@ tasks = [Task1(), Task2()]
 
 # Create configuration
 config = CycleQDConfig(
-    expert_models=expert_models,
     base_model=base_model,
     tasks=tasks,
-    population_size=2,
-    generations=10,
+    population_size=8,
+    generations=20,
     cells=3,
 )
 

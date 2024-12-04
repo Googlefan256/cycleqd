@@ -4,7 +4,6 @@ from tasks import BaseTask
 class CycleQDConfig:
     def __init__(
         self,
-        expert_models: list[str],
         base_model: str,
         tasks: list[BaseTask],
         population_size=100,
@@ -16,7 +15,6 @@ class CycleQDConfig:
         alpha_high=1.0,
         cells=2,
     ):
-        self.expert_models = expert_models
         self.base_model = base_model
         self.tasks = tasks
         self.population_size = population_size

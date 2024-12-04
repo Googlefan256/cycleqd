@@ -13,8 +13,7 @@ class CycleQD:
     def __init__(self, config: CycleQDConfig):
         self.config = config
         self.experts = [
-            ExpertModel(model_path, task.name)
-            for model_path, task in zip(config.expert_models, config.tasks)
+            ExpertModel(task.expert_model_name, task.name) for task in config.tasks
         ]
         self.base_model = BaseModel(config.base_model)
         self.tasks = config.tasks
