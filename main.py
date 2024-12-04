@@ -9,7 +9,7 @@ from lm_eval.models.huggingface import HFLM
 
 class Task1(BaseTask):
     def __init__(self):
-        super().__init__("Task 1", "Qwen/Qwen2.5-0.5B-Instruct")
+        super().__init__("MMLU Electrical Engineering", "Qwen/Qwen2.5-0.5B-Instruct")
 
     def evaluate(self, model: ExpertModel):
         lm = HFLM(
@@ -24,14 +24,17 @@ class Task1(BaseTask):
             fewshot_random_seed=None,
             verbosity="ERROR",
         )["results"]["mmlu_electrical_engineering"]["acc,none"]
-        print(f"Task1: {res}")
+        print(f"Task Result / Task: {self.name}: {res}")
         model.model.cpu()
         return torch.tensor([res])
 
 
 class Task2(BaseTask):
     def __init__(self):
-        super().__init__("Task  2", "artificialguybr/Qwen2.5-0.5B-OpenHermes2.5")
+        super().__init__(
+            "MMLU College Computer Science",
+            "artificialguybr/Qwen2.5-0.5B-OpenHermes2.5",
+        )
 
     def evaluate(self, model: ExpertModel):
         lm = HFLM(
@@ -46,7 +49,7 @@ class Task2(BaseTask):
             fewshot_random_seed=None,
             verbosity="ERROR",
         )["results"]["mmlu_college_computer_science"]["acc,none"]
-        print(f"Task2: {res}")
+        print(f"Task Result / Task: {self.name}: {res}")
         model.model.cpu()
         return torch.tensor([res])
 
@@ -77,7 +80,7 @@ final_model = cycle_qd.final()
 for task, be_performance in zip(tasks, begin_perfs):
     performance = task.evaluate(final_model)
     print(
-        f"Result performance on {task.name}: {be_performance.item()}->{performance.item()}"
+        f"Result Performance / Task: {task.name} / Before: {be_performance.item()} / After: {performance.item()}"
     )
 
 final_model.model.save_pretrained("./results")

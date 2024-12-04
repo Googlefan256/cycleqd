@@ -74,7 +74,9 @@ class CycleQD:
         for gen in range(self.config.generations):
             task_idx = gen % len(self.tasks)
             current_task = self.tasks[task_idx]
-            print(f"Task: {current_task.name} / Generation: {gen}")
+            print(
+                f"New Step / Current Task: {current_task.name} / Generation: {gen} / Total Generation: {self.config.generations}"
+            )
             performances = []
             bcs = []
             for i, model in enumerate(population):
@@ -102,19 +104,19 @@ class CycleQD:
                     population, weights=sampling_probs, k=2
                 )
                 if random.random() < self.config.crossover_rate:
-                    print(f"Using crossover / ID: {i}")
+                    print(f"Using Crossover / Model ID: {i}")
                     x = random.random() / 50.0
                     child_task_vector = self.linear_merge(
                         [parent1, parent2], [0.5 + x, 0.5 - x], False
                     ).state_dict()
                 else:
-                    print(f"Using parent1 / ID: {i}")
+                    print(f"Using Parent1 / Model ID: {i}")
                     child_task_vector = parent1
                 if random.random() < self.config.mutation_rate:
-                    print(f"Doing mutation / ID: {i}")
+                    print(f"Using Mutation / Model ID: {i}")
                     child_task_vector = self.svd_based_mutation(child_task_vector)
                 else:
-                    print(f"Not doing mutation / ID: {i}")
+                    print(f"Not Using Mutation / Model ID: {i}")
                 new_population.append(child_task_vector)
             alter_tasks = [task.name for task in self.tasks if task != current_task]
             for model, performance, bc in zip(new_population, performances, bcs):
@@ -132,6 +134,7 @@ class CycleQD:
             population = new_population
 
     def final(self):
+        print("Preparing Final Model")
         final_models = []
         for task in self.tasks:
             for model_record in self.archives[task.name]:
@@ -140,7 +143,7 @@ class CycleQD:
         final_coefficients = F.softmax(
             torch.tensor([model["perf"].item() for model in final_models]), dim=0
         )
-        print(f"Merging with ratio: {final_coefficients.tolist()}")
+        print(f"Merging / Recipe: {final_coefficients.tolist()}")
         final_model = self.linear_merge(
             [model["model"] for model in final_models], final_coefficients
         )
