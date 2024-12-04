@@ -5,9 +5,6 @@ from models import ExpertModel
 import torch
 from lm_eval import simple_evaluate
 from lm_eval.models.huggingface import HFLM
-import logging
-
-logging.disable(100)
 
 
 class Task1(BaseTask):
@@ -25,6 +22,7 @@ class Task1(BaseTask):
             numpy_random_seed=None,
             torch_random_seed=None,
             fewshot_random_seed=None,
+            verbosity="ERROR",
         )["results"]["mmlu_electrical_engineering"]["acc,none"]
         print(f"Task1: {res}")
         model.model.cpu()
@@ -46,6 +44,7 @@ class Task2(BaseTask):
             numpy_random_seed=None,
             torch_random_seed=None,
             fewshot_random_seed=None,
+            verbosity="ERROR",
         )["results"]["mmlu_college_computer_science"]["acc,none"]
         print(f"Task2: {res}")
         model.model.cpu()
@@ -53,9 +52,9 @@ class Task2(BaseTask):
 
 
 expert_models = [
-    "Qwen/Qwen2.5-Coder-0.5B",
+    "caelancooper/Qwen2.5-0.5B-business",
     "Qwen/Qwen2.5-0.5B-Instruct",
-    "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+    "artificialguybr/Qwen2.5-0.5B-OpenHermes2.5",
 ]
 base_model = "Qwen/Qwen2.5-0.5B"
 
@@ -67,17 +66,23 @@ config = CycleQDConfig(
     expert_models=expert_models,
     base_model=base_model,
     tasks=tasks,
-    population_size=5,
-    generations=30,
-    cells=2,
+    population_size=2,
+    generations=10,
+    cells=3,
 )
 
 cycle_qd = CycleQD(config)
 
+begin_perfs = []
+for task in tasks:
+    begin_perfs.append(task.evaluate(cycle_qd.base_model))
+
 final_model = cycle_qd.cyclic_optimization()
 
-for task in tasks:
+for task, be_performance in zip(tasks, begin_perfs):
     performance = task.evaluate(final_model)
-    print(f"Result performance on {task.name}: {performance.item()}")
+    print(
+        f"Result performance on {task.name}: {be_performance.item()}->{performance.item()}"
+    )
 
 final_model.model.save_pretrained("./results")

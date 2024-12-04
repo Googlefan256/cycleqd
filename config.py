@@ -9,7 +9,7 @@ class CycleQDConfig:
         tasks: list[BaseTask],
         population_size=100,
         generations=10,
-        mutation_rate=0.1,
+        mutation_rate=0.05,
         crossover_rate=0.5,
         noise_std=0.01,
         alpha_low=0.1,

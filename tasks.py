@@ -6,5 +6,4 @@ class BaseTask:
         self.name = name
 
     def evaluate(self, model: ExpertModel):
-        # Placeholder for evaluation logic
-        raise NotImplementedError()
+        raise NotImplementedError("Return 0.0 ~ 1.0 tensor")

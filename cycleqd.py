@@ -92,7 +92,10 @@ class CycleQD:
                 ]
                 performances.append(performance)
                 bcs.append(bc_performance)
-            sampling_probs = F.softmax(torch.tensor(performances), dim=0)
+            sampling_probs = F.softmax(
+                torch.tensor(performances) - min([x.item() for x in performances]) / 2,
+                dim=0,
+            )
             new_population = []
             for _ in range(self.config.population_size):
                 parent1, parent2 = random.choices(
@@ -100,8 +103,9 @@ class CycleQD:
                 )
                 if random.random() < self.config.crossover_rate:
                     print("Using crossover")
+                    x = random.random() / 50.0
                     child_task_vector = self.linear_merge(
-                        [parent1, parent2], [0.5, 0.5], False
+                        [parent1, parent2], [0.5 + x, 0.5 - x], False
                     ).state_dict()
                 else:
                     print("Using parent1")
@@ -132,9 +136,12 @@ class CycleQD:
                 if model_record is not None:
                     final_models.append(model_record)
         final_coefficients = F.softmax(
-            torch.tensor([model["perf"] for model in final_models]), dim=0
+            torch.tensor([model["perf"].item() for model in final_models]), dim=0
         )
-        final_model = self.linear_merge(final_models, final_coefficients)
+        print(f"Merging with ratio: {final_coefficients.tolist()}")
+        final_model = self.linear_merge(
+            [model for model["model"] in final_models], final_coefficients
+        )
         return ExpertModel(
             self.config.base_model, "FinalModel", final_model.state_dict()
         )
