@@ -133,13 +133,13 @@ class CycleQD:
                         - 1
                     )
                     if (
-                        self.archives[tn][current_task][i] is None
-                        or performance > self.archives[tn][current_task][i]["perf"]
+                        self.archives[tn][current_task.name][i] is None
+                        or performance > self.archives[tn][current_task.name][i]["perf"]
                     ):
                         print(
-                            f"Update Result Vector / Task: {current_task} / BTask: {tn} / Perf: {performance}"
+                            f"Update Result Vector / Task: {current_task.name} / BTask: {tn} / Perf: {performance}"
                         )
-                        self.archives[tn][current_task][i] = dict(
+                        self.archives[tn][current_task.name][i] = dict(
                             model=model, perf=performance
                         )
             population = new_population
