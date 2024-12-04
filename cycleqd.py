@@ -69,7 +69,7 @@ class CycleQD:
                 mutated_task_vector[key] = tensor.to("cpu")
         return mutated_task_vector
 
-    def cyclic_optimization(self):
+    def optimize(self):
         population = [self.get_task_vector(expert) for expert in self.experts]
         for gen in range(self.config.generations):
             task_idx = gen % len(self.tasks)
@@ -77,7 +77,8 @@ class CycleQD:
             print(f"Task: {current_task.name} / Generation: {gen}")
             performances = []
             bcs = []
-            for model in population:
+            for i, model in enumerate(population):
+                print(f"Eval model / Model: {i}")
                 merged_model = ExpertModel(
                     self.config.base_model,
                     "Placeholder",
@@ -96,24 +97,24 @@ class CycleQD:
                 dim=0,
             )
             new_population = []
-            for _ in range(self.config.population_size):
+            for i in range(self.config.population_size):
                 parent1, parent2 = random.choices(
                     population, weights=sampling_probs, k=2
                 )
                 if random.random() < self.config.crossover_rate:
-                    print("Using crossover")
+                    print(f"Using crossover / ID: {i}")
                     x = random.random() / 50.0
                     child_task_vector = self.linear_merge(
                         [parent1, parent2], [0.5 + x, 0.5 - x], False
                     ).state_dict()
                 else:
-                    print("Using parent1")
+                    print(f"Using parent1 / ID: {i}")
                     child_task_vector = parent1
                 if random.random() < self.config.mutation_rate:
-                    print("Doing mutation")
+                    print(f"Doing mutation / ID: {i}")
                     child_task_vector = self.svd_based_mutation(child_task_vector)
                 else:
-                    print("Not doing mutation")
+                    print(f"Not doing mutation / ID: {i}")
                 new_population.append(child_task_vector)
             alter_tasks = [task.name for task in self.tasks if task != current_task]
             for model, performance, bc in zip(new_population, performances, bcs):
@@ -129,6 +130,8 @@ class CycleQD:
                     ):
                         self.archives[tn][i] = dict(model=model, perf=performance)
             population = new_population
+
+    def final(self):
         final_models = []
         for task in self.tasks:
             for model_record in self.archives[task.name]:

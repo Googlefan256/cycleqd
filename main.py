@@ -71,7 +71,8 @@ begin_perfs = []
 for task in tasks:
     begin_perfs.append(task.evaluate(cycle_qd.base_model))
 
-final_model = cycle_qd.cyclic_optimization()
+cycle_qd.optimize()
+final_model = cycle_qd.final()
 
 for task, be_performance in zip(tasks, begin_perfs):
     performance = task.evaluate(final_model)
