@@ -17,10 +17,16 @@ class CycleQD:
         ]
         self.base_model = BaseModel(config.base_model)
         self.tasks = config.tasks
-        self.archives = {task.name: self.init_archive() for task in config.tasks}
+        self.archives = {
+            task.name: self.init_archive(task.name) for task in config.tasks
+        }
 
-    def init_archive(self):
-        return [None for _ in range(self.config.cells)]
+    def init_archive(self, name: str):
+        return {
+            tn.name: [None for _ in range(self.config.cells)]
+            for tn in self.tasks
+            if tn.name != name
+        }
 
     def get_task_vector(self, expert: ExpertModel):
         expert_state_dict = expert.model.state_dict()
@@ -127,19 +133,25 @@ class CycleQD:
                         - 1
                     )
                     if (
-                        self.archives[tn][i] is None
-                        or performance > self.archives[tn][i]["perf"]
+                        self.archives[tn][current_task][i] is None
+                        or performance > self.archives[tn][current_task][i]["perf"]
                     ):
-                        self.archives[tn][i] = dict(model=model, perf=performance)
+                        print(
+                            f"Update Result Vector / Task: {current_task} / BTask: {tn} / Perf: {performance}"
+                        )
+                        self.archives[tn][current_task][i] = dict(
+                            model=model, perf=performance
+                        )
             population = new_population
 
     def final(self):
         print("Preparing Final Model")
         final_models = []
         for task in self.tasks:
-            for model_record in self.archives[task.name]:
-                if model_record is not None:
-                    final_models.append(model_record)
+            for model_records in self.archives[task.name].values():
+                for record in model_records:
+                    if record is not None:
+                        final_models.append(record)
         final_coefficients = F.softmax(
             torch.tensor([model["perf"].item() for model in final_models]), dim=0
         )
