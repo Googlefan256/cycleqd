@@ -1,19 +1,15 @@
-from cycleqd import CycleQD
-from cfg import tasks, config
+from lib import CycleQD, Archive
+from cfg import tasks, base_model, sampler, merger, mutator, steps, storage, step_steps
 
-cycle_qd = CycleQD(config)
+print("Init archive")
+archive = Archive(tasks)
+print("Init CycleQD")
+cycle_qd = CycleQD(base_model, archive, tasks, sampler, merger, mutator, storage)
 
-begin_perfs = []
-for task in tasks:
-    begin_perfs.append(task.evaluate(cycle_qd.base_model))
+for i in range(steps):
+    task = tasks[i % len(tasks)]
+    print(f"Step: {i + 1} / Task: {task.name}")
+    for _ in range(step_steps):
+        cycle_qd.step(archive, task.name)
 
-cycle_qd.optimize()
-final_model = cycle_qd.final()
-
-for task, be_performance in zip(tasks, begin_perfs):
-    performance = task.evaluate(final_model)
-    print(
-        f"Result Performance / Task: {task.name} / Before: {be_performance.item()} / After: {performance.item()}"
-    )
-
-final_model.model.save_pretrained("./results")
+archive.save("./results")
