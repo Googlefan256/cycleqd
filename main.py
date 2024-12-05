@@ -11,6 +11,12 @@ for i in range(steps):
     print(f"Step: {i + 1} / Task: {task.name}")
     for _ in range(step_steps):
         cycle_qd.step(archive, task.name)
-    cycle_qd.best(archive).model.save_pretrained("./results")
+    best, score = cycle_qd.best(archive)
+    best.model.save_pretrained("./results")
+    with open("./results/score.txt", "w") as w:
+        w.write(f"Score: {score}")
 
-cycle_qd.best(archive).model.save_pretrained("./results")
+best, score = cycle_qd.best(archive)
+best.model.save_pretrained("./results")
+with open("./results/score.txt", "w") as w:
+    w.write(f"Score: {score}")

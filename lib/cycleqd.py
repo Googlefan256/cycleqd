@@ -104,7 +104,7 @@ class CycleQD:
             ExpertModel(self.base_model_name, task_name, child), archive, task_name
         )
 
-    def best(self, archive: Archive) -> ExpertModel:
+    def best(self, archive: Archive) -> Tuple[ExpertModel, float]:
         best = None
         score = 0.0
         for model in archive.iter_all():
@@ -116,4 +116,5 @@ class CycleQD:
                 )
             if model_score >= score:
                 best = expert
-        return best
+                score = model_score
+        return best, score
