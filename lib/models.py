@@ -3,7 +3,7 @@ from typing import Optional, Dict
 import torch
 from pathlib import Path
 from uuid import uuid4
-import shutil
+import os
 
 from .objects import Metrics
 
@@ -53,7 +53,7 @@ class ExpertAndMetrics:
 
     def drop(self):
         print(f"Delete model at: {self.expert_path}")
-        shutil.rmtree(self.expert_path)
+        os.system(f"rm -rf {self.expert_path}")
 
     def get_expert(self):
         print(f"Load model from: {self.expert_path}")
