@@ -12,4 +12,4 @@ for i in range(steps):
     for _ in range(step_steps):
         cycle_qd.step(archive, task.name)
 
-archive.save("./results")
+cycle_qd.best(archive).model.save_pretrained("./results")

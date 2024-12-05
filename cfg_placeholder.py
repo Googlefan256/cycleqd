@@ -13,6 +13,7 @@ class Task1(BaseTask):
             [0.0],
             [1.0],
             [15],
+            1.0,
         )
 
     def evaluate(self, model: ExpertModel) -> Tuple[float, int]:
@@ -42,6 +43,7 @@ class Task2(BaseTask):
             [0.0],
             [1.0],
             [15],
+            1.0,
         )
 
     def evaluate(self, model: ExpertModel) -> Tuple[float, int]:

@@ -30,6 +30,9 @@ class Archive:
         expert.drop()
         return False
 
-    def save(self, path: str):
-        print("Saving final results")
-        pass
+    def iter_all(self) -> List[ExpertAndMetrics]:
+        models = []
+        for v in self.__data.values():
+            for v in v.values():
+                models.append(v)
+        return models

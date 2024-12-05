@@ -103,3 +103,17 @@ class CycleQD:
         self.__eval_store_model(
             ExpertModel(self.base_model_name, task_name, child), archive, task_name
         )
+
+    def best(self, archive: Archive) -> ExpertModel:
+        best = None
+        score = 0.0
+        for model in archive.iter_all():
+            model_score = 0.0
+            expert = model.get_expert()
+            for task in self.tasks:
+                model_score += (
+                    self.__eval_model_for_task(expert, task).quality * task.weights
+                )
+            if model_score >= score:
+                best = expert
+        return best

@@ -12,6 +12,7 @@ class BaseTask:
         bc_min_vals: List[float],
         bc_max_vals: List[float],
         bc_grid_sizes: List[int],
+        weights: float,
     ):
         self.name = name
         self.expert_model_name = expert_model_name
@@ -19,6 +20,7 @@ class BaseTask:
         self.bc_min_vals = bc_min_vals
         self.bc_max_vals = bc_max_vals
         self.bc_grid_sizes = bc_grid_sizes
+        self.weights = weights
 
     def get_bin_id(self, bc_idx: int, metric: float) -> int:
         bins = np.linspace(
